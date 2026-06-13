@@ -108,3 +108,6 @@ stroke-motor-intent/
 │       └── dashboard.html        # Full dashboard UI
 └── README.md
 ```
+Team:
+Leader : Tanisha Dangwal
+Contribution: Vaibhav Murti
