@@ -1,0 +1,94 @@
+{
+  "feature_cols": [
+    "C3_mean",
+    "C3_std",
+    "C3_power",
+    "C3_max",
+    "C3_alpha",
+    "C3_beta",
+    "C3_gamma",
+    "C4_mean",
+    "C4_std",
+    "C4_power",
+    "C4_max",
+    "C4_alpha",
+    "C4_beta",
+    "C4_gamma",
+    "Cz_mean",
+    "Cz_std",
+    "Cz_power",
+    "Cz_max",
+    "Cz_alpha",
+    "Cz_beta",
+    "Cz_gamma",
+    "EMG_L_mean",
+    "EMG_L_std",
+    "EMG_L_power",
+    "EMG_L_max",
+    "EMG_L_alpha",
+    "EMG_L_beta",
+    "EMG_L_gamma",
+    "EMG_R_mean",
+    "EMG_R_std",
+    "EMG_R_power",
+    "EMG_R_max",
+    "EMG_R_alpha",
+    "EMG_R_beta",
+    "EMG_R_gamma"
+  ],
+  "classes": {
+    "0": "Left Hand",
+    "1": "Right Hand",
+    "2": "Foot",
+    "3": "Rest"
+  },
+  "gbm_accuracy": 1.0,
+  "gbm_latency_ms": 0.7627367973327637,
+  "snn_available": true,
+  "snn_accuracy": 1.0,
+  "snn_latency_ms": 9.198853969573975,
+  "snn_avg_spikes": 5.0,
+  "top_features": [
+    [
+      "EMG_R_std",
+      0.11719305424392168
+    ],
+    [
+      "C4_alpha",
+      0.09834535612060581
+    ],
+    [
+      "C3_power",
+      0.09669005661148751
+    ],
+    [
+      "C4_power",
+      0.08825924576273868
+    ],
+    [
+      "Cz_max",
+      0.08321235180132755
+    ],
+    [
+      "EMG_L_std",
+      0.08304720263908567
+    ],
+    [
+      "EMG_R_gamma",
+      0.07842827354700065
+    ],
+    [
+      "EMG_L_power",
+      0.05959990477044791
+    ],
+    [
+      "Cz_std",
+      0.05735883812623958
+    ],
+    [
+      "EMG_R_power",
+      0.05600494165422181
+    ]
+  ],
+  "input_dim": 35
+}

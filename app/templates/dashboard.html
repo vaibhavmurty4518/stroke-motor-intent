@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroMotion — Advanced AI Neuromorphic Rehab Suite</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0e17; --surface:#10151f; --surface2:#161d2b; --surface3:#1c2438;
+  --border:#252d3d; --border2:#2e3a52; --text:#e2eaf5; --muted:#6b7d99;
+  --accent:#3b82f6; --accent2:#60a5fa; --green:#22c55e; --red:#ef4444;
+  --orange:#f59e0b; --purple:#a78bfa; --teal:#2dd4bf; --pink:#ec4899;
+  --left:#3b82f6; --right:#22c55e; --foot:#a78bfa; --rest:#6b7d99;
+  --glow-blue:rgba(59,130,246,.25); --glow-green:rgba(34,197,94,.2);
+  --radius:12px; --radius-sm:8px;
+  --font:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow:hidden}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── Header ── */
+header{
+  background:linear-gradient(90deg,#0d1220 0%,#0f1929 100%);
+  border-bottom:1px solid var(--border2);
+  padding:0 24px;height:52px;display:flex;align-items:center;gap:14px;
+  position:relative;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px rgba(59,130,246,.4);
+}
+header h1{font-size:1.05rem;font-weight:700;letter-spacing:-.01em}
+header h1 span{background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-badge{
+  background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);
+  color:var(--accent2);font-size:.68rem;padding:2px 8px;border-radius:20px;font-weight:500;
+}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.live-pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);
+  padding:4px 10px;border-radius:20px;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+.live-pill span{font-size:.72rem;color:var(--green);font-weight:600;letter-spacing:.05em}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+/* Voice button in header */
+.voice-btn-header{
+  width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--surface2);color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  transition:all .2s;
+}
+.voice-btn-header:hover,.voice-btn-header.listening{
+  border-color:var(--red);color:var(--red);background:rgba(239,68,68,.1);
+  box-shadow:0 0 12px rgba(239,68,68,.3);
+}
+.voice-btn-header.listening{animation:voice-pulse 1s infinite}
+@keyframes voice-pulse{0%,100%{box-shadow:0 0 8px rgba(239,68,68,.3)}50%{box-shadow:0 0 20px rgba(239,68,68,.5)}}
+
+/* ── Layout ── */
+.shell{display:grid;grid-template-columns:200px 1fr 300px;height:calc(100vh - 52px);overflow:hidden}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-section{padding:14px 12px;border-bottom:1px solid var(--border)}
+.section-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-weight:600}
+
+.patient-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px;margin-bottom:7px;cursor:pointer;
+  transition:all .2s;
+}
+.patient-card:hover{border-color:rgba(59,130,246,.4);transform:translateX(2px)}
+.patient-card.active{border-color:var(--accent);background:rgba(59,130,246,.08)}
+.patient-card.active .patient-name{color:var(--accent2)}
+.patient-name{font-weight:600;font-size:.82rem;margin-bottom:1px}
+.patient-meta{color:var(--muted);font-size:.7rem;margin-bottom:4px}
+.patient-badge{
+  display:inline-block;background:rgba(59,130,246,.12);
+  color:var(--accent2);font-size:.65rem;padding:2px 7px;border-radius:10px;
+}
+
+.model-btns{display:flex;gap:5px}
+.model-btn{
+  flex:1;padding:7px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);border-radius:var(--radius-sm);
+  cursor:pointer;font-size:.75rem;font-weight:500;transition:all .2s;
+}
+.model-btn.active{border-color:var(--accent);background:rgba(59,130,246,.12);color:var(--accent2);font-weight:600}
+.model-btn:disabled{opacity:.35;cursor:not-allowed}
+
+.model-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+.model-stat{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:6px 8px;
+}
+.model-stat .val{font-size:.85rem;font-weight:700;color:var(--green)}
+.model-stat .lbl{font-size:.62rem;color:var(--muted);margin-top:1px}
+
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.72rem;margin-bottom:4px}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.sidebar-scroll{flex:1;overflow-y:auto;padding:14px 12px}
+
+/* ── MAIN ── */
+.main{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+
+/* Cards */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px;
+}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.card-badge{font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:500}
+
+/* ── Intent ── */
+.intent-layout{display:grid;grid-template-columns:1fr 160px;gap:12px}
+.intent-main{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:18px;text-align:center;transition:all .4s;
+  position:relative;overflow:hidden;
+}
+.intent-main::before{
+  content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.12),transparent 70%);
+  pointer-events:none;transition:background .4s;
+}
+.intent-label{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;margin-bottom:2px}
+.intent-sub{color:var(--muted);font-size:.78rem}
+.conf-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.conf-bg{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.conf-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.conf-val{font-size:.8rem;font-weight:600;min-width:40px;text-align:right}
+
+.prob-panel{display:flex;flex-direction:column;gap:5px;justify-content:center}
+.prob-label-row{font-size:.62rem;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.07em}
+.prob-row{display:flex;align-items:center;gap:6px;font-size:.76rem}
+.prob-name{width:68px;color:var(--muted)}
+.prob-bg{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.prob-fill{height:100%;border-radius:3px;transition:width .5s}
+.prob-pct{width:32px;text-align:right;color:var(--muted);font-size:.7rem}
+
+.metrics-strip{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:3px 11px;font-size:.72rem;
+}
+.chip span{color:var(--green);font-weight:600}
+.chip.purple span{color:var(--purple)}
+.chip.teal span{color:var(--teal)}
+.chip.orange span{color:var(--orange)}
+
+/* ── Neuromorphic Metrics ── */
+.nm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.nm-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  transition:border-color .3s;
+}
+.nm-box:hover{border-color:var(--border2)}
+.nm-val{font-size:1.3rem;font-weight:700;margin-bottom:2px}
+.nm-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.nm-sub{font-size:.62rem;color:var(--muted);margin-top:1px}
+.nm-box .accent{color:var(--accent2)}
+.nm-box .purple{color:var(--purple)}
+.nm-box .teal{color:var(--teal)}
+.nm-box .orange{color:var(--orange)}
+
+/* ── Signal Chart ── */
+.chart-wrap{position:relative;height:140px}
+
+/* ── Virtual Hand Orthosis ── */
+.orthosis-layout{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:start}
+.hand-canvas-wrap{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px;text-align:center;
+}
+#handCanvas{display:block;margin:0 auto}
+.hand-status-label{
+  font-size:.78rem;font-weight:600;margin-top:8px;
+  transition:color .3s;color:var(--muted);
+}
+.orthosis-state-badge{
+  display:inline-block;padding:2px 10px;border-radius:10px;font-size:.68rem;
+  margin-top:4px;font-weight:500;
+  background:rgba(107,125,153,.12);border:1px solid rgba(107,125,153,.2);color:var(--muted);
+  transition:all .4s;
+}
+.orthosis-state-badge.triggered{
+  background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--green);
+}
+.device-grid{display:flex;flex-direction:column;gap:8px}
+.device-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:11px 13px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.device-info .name{font-size:.82rem;font-weight:600;margin-bottom:2px}
+.device-info .status{font-size:.75rem;color:var(--muted)}
+.device-dot{
+  width:11px;height:11px;border-radius:50%;
+  background:var(--border);transition:all .3s;flex-shrink:0;
+}
+.device-dot.active{background:var(--green);box-shadow:0 0 8px var(--green)}
+.fa-box{
+  background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.25);
+  border-radius:var(--radius-sm);padding:8px 12px;
+  color:var(--orange);font-size:.76rem;display:none;margin-top:8px;
+}
+.fa-box.show{display:block}
+.threshold-info{font-size:.7rem;color:var(--muted);margin-top:6px}
+
+/* ── XAI Panel ── */
+.xai-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.explain-row{display:flex;align-items:center;gap:7px;font-size:.78rem;margin-bottom:6px}
+.explain-ch{width:48px;color:var(--muted);font-size:.72rem}
+.explain-bg{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.explain-fill{height:100%;border-radius:4px;background:var(--purple);transition:width .5s}
+.explain-pct{width:36px;text-align:right;color:var(--purple);font-size:.7rem;font-weight:600}
+.explain-note{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--purple)}
+
+.confidence-interp{display:flex;flex-direction:column;gap:7px}
+.interp-row{display:flex;align-items:center;gap:8px;font-size:.76rem}
+.interp-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.interp-fill{height:100%;border-radius:3px;transition:width .4s}
+.interp-label{font-size:.68rem;color:var(--muted);width:36px}
+.interp-active-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:background .3s}
+.interp-active-dot.active{background:var(--green);box-shadow:0 0 5px var(--green)}
+
+/* ── AI Coach ── */
+.coach-feed{
+  display:flex;flex-direction:column;gap:7px;
+  max-height:160px;overflow-y:auto;
+}
+.coach-msg{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:8px 12px;
+  font-size:.78rem;line-height:1.5;
+  animation:slide-in .3s ease;border-left:3px solid var(--teal);
+}
+@keyframes slide-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.coach-msg.warn{border-left-color:var(--orange)}
+.coach-msg.error{border-left-color:var(--red)}
+.coach-empty{color:var(--muted);font-size:.78rem;padding:8px 0}
+
+/* ── Voice panel ── */
+.voice-overlay{
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:14px 16px;
+  width:300px;display:none;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.voice-overlay.show{display:block;animation:slide-up .2s ease}
+@keyframes slide-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.voice-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.voice-title{font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:7px}
+.voice-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px}
+.voice-status{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px;min-height:42px;
+  font-size:.78rem;color:var(--muted);margin-bottom:10px;
+}
+.voice-waveform{height:32px;display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:8px}
+.wave-bar{width:3px;border-radius:2px;background:var(--accent);opacity:.3;transition:height .1s}
+.voice-waveform.active .wave-bar{opacity:1;animation:wave-anim 0.8s infinite}
+.wave-bar:nth-child(1){animation-delay:0s}
+.wave-bar:nth-child(2){animation-delay:.1s}
+.wave-bar:nth-child(3){animation-delay:.2s}
+.wave-bar:nth-child(4){animation-delay:.3s}
+.wave-bar:nth-child(5){animation-delay:.4s}
+.wave-bar:nth-child(6){animation-delay:.3s}
+.wave-bar:nth-child(7){animation-delay:.2s}
+.wave-bar:nth-child(8){animation-delay:.1s}
+@keyframes wave-anim{
+  0%,100%{height:4px}
+  50%{height:20px}
+}
+.voice-transcript{font-size:.76rem;color:var(--text);background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:6px;padding:7px 10px;min-height:28px;margin-bottom:8px}
+.voice-response{font-size:.76rem;color:var(--teal);line-height:1.5;min-height:20px}
+.voice-controls{display:flex;gap:6px}
+.voice-mic-btn{
+  flex:1;padding:8px;border-radius:var(--radius-sm);border:none;
+  background:linear-gradient(135deg,var(--accent),#7c3aed);
+  color:#fff;cursor:pointer;font-size:.8rem;font-weight:600;
+  transition:opacity .2s;
+}
+.voice-mic-btn:hover{opacity:.9}
+.voice-mic-btn.listening{background:linear-gradient(135deg,var(--red),#dc2626);animation:pulse-btn .8s infinite}
+@keyframes pulse-btn{0%,100%{opacity:1}50%{opacity:.7}}
+.voice-commands-hint{font-size:.68rem;color:var(--muted);margin-top:8px;line-height:1.7}
+.voice-commands-hint strong{color:var(--accent2)}
+
+/* ── Config Sidebar (right) ── */
+.config-panel{
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.config-section{padding:14px 14px;border-bottom:1px solid var(--border)}
+.config-section:last-child{border-bottom:none}
+.config-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:12px}
+
+/* patient profile */
+.profile-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px}
+.profile-label{color:var(--muted)}
+.profile-val{font-weight:500}
+
+/* recovery chart */
+.recovery-wrap{height:110px;position:relative}
+.forecast-line-note{font-size:.65rem;color:var(--orange);margin-top:5px;display:flex;align-items:center;gap:4px}
+
+/* session summary */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px}
+.sum-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:7px;text-align:center;
+}
+.sum-val{font-size:1.1rem;font-weight:700;color:var(--accent2)}
+.sum-lbl{font-size:.62rem;color:var(--muted);margin-top:1px}
+
+/* sliders */
+.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.slider-label{font-size:.74rem;color:var(--muted);width:80px;flex-shrink:0}
+.slider-val{font-size:.74rem;color:var(--green);font-weight:600;width:36px;text-align:right}
+input[type=range]{
+  flex:1;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:var(--border2);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 5px var(--glow-blue);
+}
+
+/* radio groups */
+.radio-group{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.radio-row{display:flex;align-items:center;gap:7px;font-size:.76rem;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background .2s}
+.radio-row:hover{background:var(--surface2)}
+.radio-row input[type=radio]{accent-color:var(--accent)}
+
+/* lockout buttons */
+.lockout-btns{display:flex;gap:5px}
+.lockout-btn{
+  flex:1;padding:6px;font-size:.72rem;border-radius:6px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--muted);cursor:pointer;transition:all .2s;text-align:center;
+}
+.lockout-btn.active{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.08);font-weight:600}
+
+/* clinical summary */
+.clinical-summary-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px;font-size:.73rem;
+  line-height:1.7;max-height:200px;overflow-y:auto;color:var(--text);
+}
+.clinical-summary-box .empty{color:var(--muted)}
+
+/* controls */
+.controls-grid{display:flex;gap:7px;flex-wrap:wrap}
+.btn{
+  padding:8px 14px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);cursor:pointer;font-size:.76rem;font-weight:500;
+  transition:all .15s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent2)}
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),#6d28d9);
+  border-color:transparent;color:#fff;font-weight:600;
+  box-shadow:0 2px 12px rgba(59,130,246,.3);
+}
+.btn.primary:hover{box-shadow:0 4px 20px rgba(59,130,246,.45);transform:translateY(-1px)}
+.btn[data-class="0"]{border-color:rgba(59,130,246,.4);color:var(--left)}
+.btn[data-class="1"]{border-color:rgba(34,197,94,.4);color:var(--right)}
+.btn[data-class="2"]{border-color:rgba(167,139,250,.4);color:var(--foot)}
+.btn[data-class="3"]{border-color:rgba(107,125,153,.4);color:var(--rest)}
+
+/* auto-run toggle */
+.auto-run-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.76rem}
+.toggle-switch{position:relative;width:34px;height:18px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:var(--border2);border-radius:9px;transition:background .3s;
+}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:#fff;transition:transform .3s;
+}
+.toggle-switch input:checked + .toggle-track{background:var(--accent)}
+.toggle-switch input:checked ~ .toggle-thumb{transform:translateX(16px)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;padding:0 2px;margin-bottom:12px}
+.tab{
+  padding:5px 11px;border-radius:6px;font-size:.74rem;cursor:pointer;
+  color:var(--muted);transition:all .2s;border:1px solid transparent;
+}
+.tab.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25);color:var(--accent2);font-weight:600}
+
+/* ── Triggered flash ── */
+@keyframes triggered-flash{
+  0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}
+  70%{box-shadow:0 0 0 14px rgba(34,197,94,0)}
+  100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
+}
+.flash-trigger{animation:triggered-flash .6s ease}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ HEADER ══ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="#60a5fa" stroke-width="1.5"/><path d="M5 9 Q7 4 9 9 Q11 14 13 9" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="9" cy="9" r="1.5" fill="#60a5fa"/></svg>
+    </div>
+    <h1>Neuro<span>Motion</span></h1>
+  </div>
+  <span class="header-badge">Advanced AI Rehab Suite</span>
+  <div class="header-right">
+    <button class="voice-btn-header" id="voiceBtnHeader" onclick="toggleVoicePanel()" title="Voice Assistant (Alt+V)">🎤</button>
+    <div class="live-pill"><div class="live-dot"></div><span>LIVE</span></div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════ SHELL ═══ -->
+<div class="shell">
+
+<!-- ══════════════════ LEFT SIDEBAR ══════════════════════ -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="section-label">Patients</div>
+    {% for pid, p in patients.items() %}
+    <div class="patient-card {% if loop.first %}active{% endif %}" data-pid="{{ pid }}" onclick="selectPatient('{{ pid }}')">
+      <div class="patient-name">{{ p.name }}</div>
+      <div class="patient-meta">Age {{ p.age }} · {{ p.condition }}</div>
+      <div class="patient-badge">{{ p.affected }} Side · {{ p.sessions }} sessions</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">AI Model</div>
+    <div class="model-btns">
+      <button class="model-btn active" id="btn-gbm" onclick="setModel('gbm')">GBM</button>
+      <button class="model-btn" id="btn-snn" onclick="setModel('snn')"
+        {% if not snn_available %}disabled title="SNN not available"{% endif %}>SNN</button>
+    </div>
+    <div class="model-stat-grid">
+      <div class="model-stat"><div class="val" id="model-acc">{{ gbm_accuracy }}%</div><div class="lbl">Accuracy</div></div>
+      <div class="model-stat"><div class="val" id="model-lat">{{ gbm_latency }}ms</div><div class="lbl">Latency</div></div>
+      <div class="model-stat" style="grid-column:span 2"><div class="val" id="model-type" style="font-size:.75rem">Gradient Boost</div><div class="lbl">Architecture</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">Legend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--left)"></div><span>Left Hand (C4 ERD)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--right)"></div><span>Right Hand (C3 ERD)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--foot)"></div><span>Foot (Cz active)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--rest)"></div><span>Rest (alpha dominant)</span></div>
+  </div>
+
+  <div class="sidebar-scroll">
+    <div class="section-label">Pipeline</div>
+    <div style="font-size:.72rem;color:var(--muted);line-height:2.3">
+      <div style="color:var(--text)">● EEG/EMG Headset (256 Hz)</div>
+      <div>↓ LIF Spike Encoding</div>
+      <div>↓ Feature Extraction (35)</div>
+      <div>↓ {% if snn_available %}SNN / {% endif %}Gradient Boost</div>
+      <div>↓ Intent Classification</div>
+      <div style="color:var(--green)">→ Orthosis / FES Trigger</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+<div class="main" id="mainScroll">
+
+  <!-- 1 · MOTOR INTENT + PROBS -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Motor Intent Detection</span>
+      <span class="card-badge" id="model-chip" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:var(--accent2)">GBM</span>
+    </div>
+    <div class="intent-layout">
+      <div class="intent-main" id="intent-box">
+        <div class="intent-label" id="intent-label" style="color:var(--muted)">—</div>
+        <div class="intent-sub" id="intent-sub">Awaiting signal…</div>
+        <div class="conf-row">
+          <div class="conf-bg"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
+          <span class="conf-val" id="conf-val">—</span>
+        </div>
+      </div>
+      <div class="prob-panel">
+        <div class="prob-label-row">Class Probabilities</div>
+        <div class="prob-row"><span class="prob-name">Left Hand</span><div class="prob-bg"><div class="prob-fill" id="pb-0" style="width:0%;background:var(--left)"></div></div><span class="prob-pct" id="pv-0">—</span></div>
+        <div class="prob-row"><span class="prob-name">Right Hand</span><div class="prob-bg"><div class="prob-fill" id="pb-1" style="width:0%;background:var(--right)"></div></div><span class="prob-pct" id="pv-1">—</span></div>
+        <div class="prob-row"><span class="prob-name">Foot</span><div class="prob-bg"><div class="prob-fill" id="pb-2" style="width:0%;background:var(--foot)"></div></div><span class="prob-pct" id="pv-2">—</span></div>
+        <div class="prob-row"><span class="prob-name">Rest</span><div class="prob-bg"><div class="prob-fill" id="pb-3" style="width:0%;background:var(--rest)"></div></div><span class="prob-pct" id="pv-3">—</span></div>
+      </div>
+    </div>
+    <div class="metrics-strip">
+      <div class="chip">Latency: <span id="latency-val">—</span></div>
+      <div class="chip">Model: <span id="active-model-chip">GBM</span></div>
+      <div class="chip purple" id="spike-chip" style="display:none">Spikes: <span id="spike-val">—</span></div>
+      <div class="chip teal" id="energy-chip" style="display:none">Energy: <span id="energy-val">—</span></div>
+    </div>
+  </div>
+
+  <!-- 2 · NEUROMORPHIC METRICS -->
+  <div class="card" id="nm-card">
+    <div class="card-header">
+      <span class="card-title">Neuromorphic Metrics</span>
+      <span class="card-badge" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);color:var(--purple);font-size:.65rem">SNN ONLY</span>
+    </div>
+    <div class="nm-grid">
+      <div class="nm-box">
+        <div class="nm-val accent" id="nm-spikes">—</div>
+        <div class="nm-lbl">Spike Count</div>
+        <div class="nm-sub">total across layers</div>
+      </div>
+      <div class="nm-box">
+        <div class="nm-val purple" id="nm-sparsity">—</div>
+        <div class="nm-lbl">Layer Sparsity</div>
+        <div class="nm-sub">% silent neurons</div>
+      </div>
+      <div class="nm-box">
+        <div class="nm-val teal" id="nm-energy">—</div>
+        <div class="nm-lbl">Est. Energy</div>
+        <div class="nm-sub">pJ (Intel Loihi est.)</div>
+      </div>
+      <div class="nm-box">
+        <div class="nm-val orange" id="nm-eventrate">—</div>
+        <div class="nm-lbl">Event Rate</div>
+        <div class="nm-sub">kilo-events / sec</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · SIGNAL CHART -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">EEG / EMG Signals (last 1s window)</span></div>
+    <div class="chart-wrap"><canvas id="signalChart"></canvas></div>
+  </div>
+
+  <!-- 4 · VIRTUAL HAND ORTHOSIS -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Interactive Virtual Hand Orthosis</span>
+      <span class="orthosis-state-badge" id="orthosis-badge">STANDBY</span>
+    </div>
+    <div class="orthosis-layout">
+      <div class="hand-canvas-wrap">
+        <canvas id="handCanvas" width="180" height="190"></canvas>
+        <div class="hand-status-label" id="hand-label">Idle — Awaiting Signal</div>
+      </div>
+      <div class="device-grid">
+        <div class="device-card">
+          <div class="device-info">
+            <div class="name">Robotic Exoskeleton</div>
+            <div class="status" id="exo-status">Standby — safety lockout active</div>
+          </div>
+          <div class="device-dot" id="exo-dot"></div>
+        </div>
+        <div class="device-card">
+          <div class="device-info">
+            <div class="name">FES Neurostimulator</div>
+            <div class="status" id="fes-status">Standby — awaiting intent</div>
+          </div>
+          <div class="device-dot" id="fes-dot"></div>
+        </div>
+        <div class="fa-box" id="fa-overlay">⚠ Low confidence — False alarm suppressed (below safety threshold)</div>
+        <div class="threshold-info">Safety threshold: <span id="threshold-display" style="color:var(--orange);font-weight:600">75%</span> SNN certainty required</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 · XAI + CONFIDENCE INTERP -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Explainability Dashboard</span></div>
+    <div class="xai-layout">
+      <div>
+        <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:9px">Channel Contributions</div>
+        <div id="explain-bars"><div style="color:var(--muted);font-size:.76rem">Run a simulation to see XAI data.</div></div>
+        <div class="explain-note" id="explain-note" style="display:none"></div>
+      </div>
+      <div>
+        <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:9px">Confidence Interpretation</div>
+        <div class="confidence-interp" id="conf-interp">
+          <div class="interp-row"><div class="interp-active-dot" id="ci-low"></div><div class="interp-bar-wrap"><div class="interp-fill" id="ci-low-fill" style="width:33%;background:var(--red)"></div></div><span class="interp-label" style="color:var(--red)">Low</span></div>
+          <div class="interp-row"><div class="interp-active-dot" id="ci-med"></div><div class="interp-bar-wrap"><div class="interp-fill" id="ci-med-fill" style="width:33%;background:var(--orange)"></div></div><span class="interp-label" style="color:var(--orange)">Med</span></div>
+          <div class="interp-row"><div class="interp-active-dot" id="ci-high"></div><div class="interp-bar-wrap"><div class="interp-fill" id="ci-high-fill" style="width:33%;background:var(--green)"></div></div><span class="interp-label" style="color:var(--green)">High</span></div>
+          <div class="interp-row"><div class="interp-active-dot" id="ci-exc"></div><div class="interp-bar-wrap"><div class="interp-fill" id="ci-exc-fill" style="width:33%;background:var(--teal)"></div></div><span class="interp-label" style="color:var(--teal)">Excel</span></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:10px;line-height:1.6" id="conf-interp-text">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 · AI COACH -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">AI Rehabilitation Coach</span>
+      <button class="btn" onclick="fetchCoach()" style="padding:4px 10px;font-size:.7rem">🔄 Refresh</button>
+    </div>
+    <div class="coach-feed" id="coach-feed">
+      <div class="coach-empty">Run a simulation to activate the AI Coach.</div>
+    </div>
+  </div>
+
+  <!-- 7 · CONTROLS -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Simulation Controls</span></div>
+    <div class="controls-grid">
+      <button class="btn primary" onclick="simulate(null)">▶ Run Window</button>
+      <button class="btn" data-class="0" onclick="simulate(0)">⬡ Left Hand</button>
+      <button class="btn" data-class="1" onclick="simulate(1)">⬡ Right Hand</button>
+      <button class="btn" data-class="2" onclick="simulate(2)">⬡ Foot</button>
+      <button class="btn" data-class="3" onclick="simulate(3)">⬡ Rest</button>
+    </div>
+    <div class="auto-run-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="autoRunToggle" onchange="toggleAutoRun()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+      <span style="color:var(--muted)">Auto-run every</span>
+      <select id="autoRunInterval" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:2px 5px;font-size:.74rem">
+        <option value="2000">2s</option>
+        <option value="3000" selected>3s</option>
+        <option value="5000">5s</option>
+      </select>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══════════════ RIGHT CONFIG PANEL ════════════════════ -->
+<div class="config-panel">
+
+  <!-- Patient Profile -->
+  <div class="config-section">
+    <div class="config-title">Patient Profile</div>
+    <div id="patient-profile">
+      <div class="profile-row"><span class="profile-label">Name</span><span class="profile-val" id="pname">—</span></div>
+      <div class="profile-row"><span class="profile-label">Age</span><span class="profile-val" id="page">—</span></div>
+      <div class="profile-row"><span class="profile-label">Condition</span><span class="profile-val" id="pcond">—</span></div>
+      <div class="profile-row"><span class="profile-label">Affected</span><span class="profile-val" id="paff">—</span></div>
+      <div class="profile-row"><span class="profile-label">Sessions</span><span class="profile-val" id="psess">—</span></div>
+    </div>
+  </div>
+
+  <!-- Recovery + Forecast -->
+  <div class="config-section">
+    <div class="config-title">Recovery Progress &amp; Forecast</div>
+    <div class="recovery-wrap"><canvas id="recoveryChart"></canvas></div>
+    <div class="forecast-line-note">── <span style="color:var(--orange)">Forecast (next 5 sessions)</span></div>
+    <div class="sum-grid">
+      <div class="sum-box"><div class="sum-val" id="sum-windows">0</div><div class="sum-lbl">Windows</div></div>
+      <div class="sum-box"><div class="sum-val" id="sum-triggers">0</div><div class="sum-lbl">Triggers</div></div>
+      <div class="sum-box"><div class="sum-val" id="sum-conf">—</div><div class="sum-lbl">Avg Conf</div></div>
+      <div class="sum-box"><div class="sum-val" id="sum-lat">—</div><div class="sum-lbl">Avg Lat</div></div>
+    </div>
+  </div>
+
+  <!-- Settings Engine -->
+  <div class="config-section">
+    <div class="config-title">⚙ Settings Engine</div>
+
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:5px;font-weight:500">Neural Encoding Mode</div>
+    <div class="radio-group">
+      <label class="radio-row"><input type="radio" name="enc" value="delta" checked id="enc-delta"> Step-Forward Delta Modulation</label>
+      <label class="radio-row"><input type="radio" name="enc" value="poisson" id="enc-poisson"> Rate-Based Poisson Coding</label>
+    </div>
+
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;margin-top:4px;font-weight:500">Delta Threshold (Δ)</div>
+    <div class="slider-row">
+      <span class="slider-label">Sensitivity</span>
+      <input type="range" id="deltaSlider" min="0.1" max="2.0" step="0.1" value="0.5" oninput="updateDelta()">
+      <span class="slider-val" id="deltaVal">0.5</span>
+    </div>
+
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;margin-top:4px;font-weight:500">Safety Lockout Threshold</div>
+    <div class="lockout-btns">
+      <div class="lockout-btn active" data-pct="75" onclick="setLockout(this)">75%</div>
+      <div class="lockout-btn" data-pct="85" onclick="setLockout(this)">85%</div>
+      <div class="lockout-btn" data-pct="95" onclick="setLockout(this)">95%</div>
+    </div>
+
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:5px;margin-top:10px;font-weight:500">Paradigm (Class Count)</div>
+    <div class="radio-group">
+      <label class="radio-row"><input type="radio" name="paradigm" value="2"> 2-Class (Move / Rest)</label>
+      <label class="radio-row"><input type="radio" name="paradigm" value="3"> 3-Class (L/R/Rest)</label>
+      <label class="radio-row"><input type="radio" name="paradigm" value="4" checked> 4-Class (L/R/Foot/Rest)</label>
+    </div>
+  </div>
+
+  <!-- Clinical Summary -->
+  <div class="config-section">
+    <div class="config-title">Clinical Summary Generator</div>
+    <div class="clinical-summary-box" id="clinical-summary-box">
+      <div class="empty">Click "Generate" to produce a clinical summary for the current patient.</div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:8px;padding:8px" onclick="generateClinicalSummary()">📋 Generate Summary</button>
+  </div>
+
+  <!-- Model Benchmarks -->
+  <div class="config-section">
+    <div class="config-title">Model Benchmarks</div>
+    <div style="font-size:.76rem;line-height:2.2">
+      <div class="profile-row"><span class="profile-label">GBM Accuracy</span><span style="color:var(--green)">{{ gbm_accuracy }}%</span></div>
+      <div class="profile-row"><span class="profile-label">GBM Latency</span><span style="color:var(--green)">{{ gbm_latency }}ms</span></div>
+      {% if snn_available %}
+      <div class="profile-row"><span class="profile-label">SNN Accuracy</span><span style="color:var(--purple)">{{ snn_accuracy }}%</span></div>
+      <div class="profile-row"><span class="profile-label">SNN Latency</span><span style="color:var(--purple)">{{ snn_latency }}ms</span></div>
+      {% endif %}
+      <div class="profile-row"><span class="profile-label">Signal Rate</span><span>256 Hz</span></div>
+      <div class="profile-row"><span class="profile-label">Window</span><span>1 sec</span></div>
+      <div class="profile-row"><span class="profile-label">Channels</span><span>5 (EEG+EMG)</span></div>
+    </div>
+  </div>
+
+</div><!-- /config-panel -->
+</div><!-- /shell -->
+
+<!-- ═══════════════════ VOICE OVERLAY ═══════════════════ -->
+<div class="voice-overlay" id="voiceOverlay">
+  <div class="voice-header">
+    <div class="voice-title">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="1" width="6" height="9" rx="3" fill="#60a5fa"/><path d="M2 8c0 2.8 2.2 5 5 5s5-2.2 5-5" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" fill="none"/><line x1="7" y1="13" x2="7" y2="14" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Voice Assistant
+    </div>
+    <button class="voice-close" onclick="toggleVoicePanel()">✕</button>
+  </div>
+  <div class="voice-waveform" id="voiceWaveform">
+    <div class="wave-bar" style="height:4px"></div>
+    <div class="wave-bar" style="height:8px"></div>
+    <div class="wave-bar" style="height:12px"></div>
+    <div class="wave-bar" style="height:16px"></div>
+    <div class="wave-bar" style="height:20px"></div>
+    <div class="wave-bar" style="height:16px"></div>
+    <div class="wave-bar" style="height:12px"></div>
+    <div class="wave-bar" style="height:8px"></div>
+  </div>
+  <div style="font-size:.68rem;color:var(--muted);margin-bottom:5px">You said:</div>
+  <div class="voice-transcript" id="voiceTranscript">—</div>
+  <div style="font-size:.68rem;color:var(--muted);margin-bottom:5px">Assistant:</div>
+  <div class="voice-response" id="voiceResponse">Say a command to begin…</div>
+  <div class="voice-controls" style="margin-top:10px">
+    <button class="voice-mic-btn" id="voiceMicBtn" onclick="toggleListening()">🎤 Press to Speak</button>
+  </div>
+  <div class="voice-commands-hint">
+    Try: <strong>"Run simulation"</strong> · <strong>"Trigger left hand"</strong> ·
+    <strong>"Switch to SNN"</strong> · <strong>"Show summary"</strong> ·
+    <strong>"Take a break"</strong>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════
+const CLASS_COLORS = ['#3b82f6','#22c55e','#a78bfa','#6b7d99'];
+const CLASS_NAMES  = ['Left Hand','Right Hand','Foot','Rest'];
+const CHANNELS     = ['C3','C4','Cz','EMG_L','EMG_R'];
+const CH_COLORS    = ['#3b82f6','#22c55e','#a78bfa','#f59e0b','#ef4444'];
+const EXPLAIN_NOTES = {
+  'Left Hand':  'C3 alpha suppression (event-related desynchronization) indicates contralateral motor cortex activation for LEFT hand movement.',
+  'Right Hand': 'C4 alpha suppression indicates contralateral motor cortex activation for RIGHT hand movement.',
+  'Foot':       'Strong Cz (vertex) activation is characteristic of foot / lower-limb motor imagery.',
+  'Rest':       'Bilateral alpha rhythms dominant across C3/C4/Cz — no active motor intent detected.',
+};
+
+const PATIENTS_DATA = {{ patients | tojson }};
+
+let currentPatient   = 'P001';
+let currentModel     = 'gbm';
+let currentThreshold = 75;
+let currentNumClasses= 4;
+let currentDelta     = 0.5;
+let currentEncoding  = 'delta';
+let signalChart      = null;
+let recoveryChart    = null;
+let autoRunTimer     = null;
+let handCanvas, handCtx;
+
+// ══════════════════════════════════════════════════════
+//  HAND CANVAS 2D ORTHOSIS
+// ══════════════════════════════════════════════════════
+function initHandCanvas() {
+  handCanvas = document.getElementById('handCanvas');
+  handCtx    = handCanvas.getContext('2d');
+  drawHand(3, false, 0);
+}
+
+function drawHand(cls, triggered, animFrame) {
+  const ctx = handCtx;
+  const W = handCanvas.width, H = handCanvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const color  = triggered ? CLASS_COLORS[cls] : '#2a3441';
+  const stroke = triggered ? CLASS_COLORS[cls] : '#30363d';
+  const glow   = triggered;
+
+  if (glow) {
+    ctx.shadowColor = CLASS_COLORS[cls];
+    ctx.shadowBlur  = 18;
+  } else {
+    ctx.shadowBlur = 0;
+  }
+
+  // Palm
+  ctx.fillStyle   = color;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = 2;
+  roundRect(ctx, 38, 90, 100, 65, 12, true, true);
+
+  // Wrist band
+  ctx.shadowBlur = 0;
+  ctx.fillStyle   = triggered ? 'rgba(0,0,0,.4)' : '#161d2b';
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = 1.5;
+  roundRect(ctx, 38, 146, 100, 14, 4, true, true);
+
+  if (glow) { ctx.shadowColor = CLASS_COLORS[cls]; ctx.shadowBlur = 14; }
+
+  // ── Finger positions based on class ──
+  const isOpen   = (cls === 0 || cls === 1) && triggered;
+  const isPartial= cls === 2 && triggered;
+
+  const fingerDefs = [
+    {x:44, baseY:92, w:16, h:50},   // index
+    {x:64, baseY:86, w:16, h:56},   // middle
+    {x:84, baseY:90, w:16, h:52},   // ring
+    {x:104,baseY:100,w:14, h:40},   // pinky
+  ];
+
+  ctx.fillStyle   = color;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = 2;
+
+  fingerDefs.forEach((f, i) => {
+    ctx.save();
+    if (isOpen) {
+      const lift = [12, 14, 12, 8][i];
+      drawFinger(ctx, f.x, f.baseY - lift, f.w, f.h, 7, glow, CLASS_COLORS[cls]);
+    } else if (isPartial) {
+      // Partial curl for foot
+      ctx.translate(f.x + f.w/2, f.baseY + f.h);
+      ctx.rotate([0.35, 0.42, 0.42, 0.35][i]);
+      ctx.translate(-(f.x + f.w/2), -(f.baseY + f.h));
+      drawFinger(ctx, f.x, f.baseY, f.w, f.h, 7, glow, CLASS_COLORS[cls]);
+    } else {
+      drawFinger(ctx, f.x, f.baseY, f.w, f.h, 7, glow, CLASS_COLORS[cls]);
+    }
+    ctx.restore();
+  });
+
+  // Thumb
+  ctx.save();
+  ctx.fillStyle   = color;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = 2;
+  if (isOpen) {
+    ctx.translate(28+12, 130);
+    ctx.rotate(-0.28);
+    ctx.translate(-(28+12), -130);
+  }
+  drawFinger(ctx, 20, 100, 20, 44, 9, glow, CLASS_COLORS[cls]);
+  ctx.restore();
+
+  ctx.shadowBlur = 0;
+
+  // Knuckle lines
+  if (triggered) {
+    ctx.strokeStyle = 'rgba(0,0,0,.3)';
+    ctx.lineWidth = 1;
+    fingerDefs.forEach(f => {
+      ctx.beginPath();
+      ctx.moveTo(f.x+2, 95);
+      ctx.lineTo(f.x+f.w-2, 95);
+      ctx.stroke();
+    });
+  }
+
+  // Wrist sensor dots
+  const dotColors = triggered
+    ? [CLASS_COLORS[cls], CLASS_COLORS[cls], CLASS_COLORS[cls]]
+    : ['#2e3a52', '#2e3a52', '#2e3a52'];
+  [50, 85, 120].forEach((x, i) => {
+    ctx.beginPath();
+    ctx.arc(x, 153, 3, 0, Math.PI * 2);
+    ctx.fillStyle = dotColors[i];
+    ctx.fill();
+  });
+}
+
+function drawFinger(ctx, x, y, w, h, r, glow, glowColor) {
+  roundRect(ctx, x, y, w, h, r, true, true);
+  if (glow) {
+    // Knuckle highlight
+    const grad = ctx.createLinearGradient(x, y, x, y+h);
+    grad.addColorStop(0, 'rgba(255,255,255,.15)');
+    grad.addColorStop(1, 'rgba(0,0,0,.1)');
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, w, h, r, true, false);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+  if (fill)   ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+let handAnim = null;
+function animateHand(cls, triggered) {
+  if (handAnim) cancelAnimationFrame(handAnim);
+  let frame = 0;
+  const totalFrames = triggered ? 18 : 8;
+  function step() {
+    drawHand(cls, triggered, frame);
+    frame++;
+    if (frame < totalFrames) handAnim = requestAnimationFrame(step);
+  }
+  step();
+
+  const labels = ['Left Hand Open','Right Hand Grip','Foot Flex','Rest — Idle'];
+  document.getElementById('hand-label').textContent = triggered ? labels[cls] : (cls===3?'Rest — Idle':'Low Confidence');
+  document.getElementById('hand-label').style.color = triggered ? CLASS_COLORS[cls] : '#6b7d99';
+
+  const badge = document.getElementById('orthosis-badge');
+  badge.textContent = triggered ? `TRIGGERED — ${CLASS_NAMES[cls]}` : 'STANDBY';
+  badge.classList.toggle('triggered', triggered);
+}
+
+// ══════════════════════════════════════════════════════
+//  CHARTS
+// ══════════════════════════════════════════════════════
+function initSignalChart() {
+  const ctx = document.getElementById('signalChart').getContext('2d');
+  signalChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: CHANNELS.map((ch, i) => ({
+        label: ch, data: [],
+        borderColor: CH_COLORS[i], borderWidth: 1.3,
+        pointRadius: 0, tension: 0.3,
+        backgroundColor: 'transparent',
+      }))
+    },
+    options: {
+      animation: false, responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#6b7d99', font: { size: 10 }, boxWidth: 10 } } },
+      scales: {
+        x: { ticks: { color: '#6b7d99', maxTicksLimit: 8, font: { size: 9 } }, grid: { color: '#1c2438' } },
+        y: { ticks: { color: '#6b7d99', font: { size: 9 } }, grid: { color: '#1c2438' } }
+      }
+    }
+  });
+}
+
+function initRecoveryChart() {
+  const ctx = document.getElementById('recoveryChart').getContext('2d');
+  recoveryChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Accuracy', data: [],
+          borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.07)',
+          borderWidth: 2, pointRadius: 3, fill: true, tension: 0.4,
+        },
+        {
+          label: 'Forecast', data: [],
+          borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.05)',
+          borderWidth: 1.5, pointRadius: 3, fill: false, tension: 0.4,
+          borderDash: [4, 3],
+        }
+      ]
+    },
+    options: {
+      animation: false, responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#6b7d99', font: { size: 9 } }, grid: { color: '#1c2438' } },
+        y: {
+          min: 0, max: 1,
+          ticks: { color: '#6b7d99', font: { size: 9 }, callback: v => (v*100).toFixed(0)+'%' },
+          grid: { color: '#1c2438' }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  PATIENT SELECT
+// ══════════════════════════════════════════════════════
+function selectPatient(pid) {
+  currentPatient = pid;
+  document.querySelectorAll('.patient-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.pid === pid));
+  const p = PATIENTS_DATA[pid];
+  document.getElementById('pname').textContent = p.name;
+  document.getElementById('page').textContent  = p.age;
+  document.getElementById('pcond').textContent = p.condition;
+  document.getElementById('paff').textContent  = p.affected + ' side';
+  document.getElementById('psess').textContent = p.sessions + ' sessions';
+  loadRecovery(pid);
+}
+
+// ══════════════════════════════════════════════════════
+//  RECOVERY + FORECAST
+// ══════════════════════════════════════════════════════
+async function loadRecovery(pid) {
+  const res  = await fetch(`/recovery/${pid}`);
+  const data = await res.json();
+  const hist = data.history;
+  const fore = data.forecast || [];
+
+  const histLabels = hist.map(h => `S${h.session}`);
+  const foreLabels = fore.map((_, i) => `F${i+1}`);
+  const allLabels  = [...histLabels, ...foreLabels];
+
+  const histData = hist.map(h => h.accuracy);
+  const foreData = new Array(hist.length).fill(null).concat(fore);
+
+  recoveryChart.data.labels              = allLabels;
+  recoveryChart.data.datasets[0].data    = histData.concat(new Array(fore.length).fill(null));
+  recoveryChart.data.datasets[1].data    = foreData;
+  recoveryChart.update();
+
+  const s = data.current_summary;
+  document.getElementById('sum-windows').textContent  = s.total_windows;
+  document.getElementById('sum-triggers').textContent = s.triggered;
+  document.getElementById('sum-conf').textContent     = s.avg_confidence ? (s.avg_confidence*100).toFixed(0)+'%' : '—';
+  document.getElementById('sum-lat').textContent      = s.avg_latency_ms ? s.avg_latency_ms+'ms' : '—';
+}
+
+// ══════════════════════════════════════════════════════
+//  MODEL TOGGLE
+// ══════════════════════════════════════════════════════
+function setModel(m) {
+  currentModel = m;
+  document.getElementById('btn-gbm').classList.toggle('active', m==='gbm');
+  document.getElementById('btn-snn').classList.toggle('active', m==='snn');
+  const stats = {
+    gbm: { acc: '{{ gbm_accuracy }}%', lat: '{{ gbm_latency }}ms', type: 'Gradient Boost' },
+    snn: { acc: '{{ snn_accuracy }}%', lat: '{{ snn_latency }}ms', type: 'Spiking Neural Net' }
+  };
+  document.getElementById('model-acc').textContent  = stats[m].acc;
+  document.getElementById('model-lat').textContent  = stats[m].lat;
+  document.getElementById('model-type').textContent = stats[m].type;
+  document.getElementById('active-model-chip').textContent = m.toUpperCase();
+  document.getElementById('model-chip').textContent = m.toUpperCase();
+  // Show/hide SNN-only sections
+  document.getElementById('nm-card').style.opacity = m === 'snn' ? '1' : '0.4';
+}
+
+// ══════════════════════════════════════════════════════
+//  CONFIG ENGINE
+// ══════════════════════════════════════════════════════
+function updateDelta() {
+  currentDelta = parseFloat(document.getElementById('deltaSlider').value);
+  document.getElementById('deltaVal').textContent = currentDelta.toFixed(1);
+}
+
+function setLockout(el) {
+  document.querySelectorAll('.lockout-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentThreshold = parseInt(el.dataset.pct);
+  document.getElementById('threshold-display').textContent = currentThreshold + '%';
+  document.getElementById('fa-overlay').textContent = `⚠ Low confidence — False alarm suppressed (threshold: ${currentThreshold}%)`;
+}
+
+function getParadigm() {
+  const checked = document.querySelector('input[name="paradigm"]:checked');
+  return checked ? parseInt(checked.value) : 4;
+}
+
+function getEncoding() {
+  const checked = document.querySelector('input[name="enc"]:checked');
+  return checked ? checked.value : 'delta';
+}
+
+// ══════════════════════════════════════════════════════
+//  SIMULATE
+// ══════════════════════════════════════════════════════
+async function simulate(forceClass) {
+  currentNumClasses = getParadigm();
+  currentEncoding   = getEncoding();
+
+  let fc = forceClass;
+  if (fc !== null && fc !== undefined) {
+    fc = Math.min(fc, currentNumClasses - 1);
+  }
+
+  const res = await fetch('/simulate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      patient_id:      currentPatient,
+      model:           currentModel,
+      force_class:     fc,
+      threshold_pct:   currentThreshold,
+      num_classes:     currentNumClasses,
+      encoding_mode:   currentEncoding,
+      delta_threshold: currentDelta,
+    })
+  });
+  const d = await res.json();
+
+  // ── Intent display ──
+  const color = CLASS_COLORS[d.intent_class];
+  document.getElementById('intent-label').textContent = d.intent;
+  document.getElementById('intent-label').style.color = color;
+  document.getElementById('intent-sub').textContent   = `Confidence: ${(d.confidence*100).toFixed(1)}% · True: ${d.true_intent}`;
+  document.getElementById('conf-fill').style.width    = (d.confidence*100)+'%';
+  document.getElementById('conf-fill').style.background = color;
+  document.getElementById('conf-val').textContent     = (d.confidence*100).toFixed(1)+'%';
+  // Glow intent box
+  const ib = document.getElementById('intent-box');
+  ib.style.borderColor = color + '55';
+  ib.style.boxShadow   = `0 0 24px ${color}22`;
+
+  // ── Probabilities ──
+  CLASS_NAMES.forEach((cn, i) => {
+    const p = d.probabilities[cn] || 0;
+    document.getElementById(`pb-${i}`).style.width = (p*100)+'%';
+    document.getElementById(`pv-${i}`).textContent = (p*100).toFixed(0)+'%';
+  });
+
+  // ── Basic chips ──
+  document.getElementById('latency-val').textContent      = d.latency_ms+'ms';
+  document.getElementById('active-model-chip').textContent= d.model_used.toUpperCase();
+  document.getElementById('model-chip').textContent       = d.model_used.toUpperCase();
+
+  if (d.spike_count !== null && d.spike_count !== undefined) {
+    document.getElementById('spike-chip').style.display  = '';
+    document.getElementById('spike-val').textContent     = d.spike_count;
+    document.getElementById('energy-chip').style.display = '';
+    document.getElementById('energy-val').textContent    = (d.snn_metrics ? d.snn_metrics.energy_pj+'pJ' : '—');
+  } else {
+    document.getElementById('spike-chip').style.display  = 'none';
+    document.getElementById('energy-chip').style.display = 'none';
+  }
+
+  // ── Neuromorphic metrics ──
+  if (d.snn_metrics) {
+    const nm = d.snn_metrics;
+    document.getElementById('nm-spikes').textContent    = nm.spike_count;
+    document.getElementById('nm-sparsity').textContent  = nm.layer_sparsity + '%';
+    document.getElementById('nm-energy').textContent    = nm.energy_pj + ' pJ';
+    document.getElementById('nm-eventrate').textContent = nm.event_rate_keps + ' kEPS';
+  } else {
+    ['nm-spikes','nm-sparsity','nm-energy','nm-eventrate'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+  }
+
+  // ── Signal chart ──
+  signalChart.data.labels = d.time_axis.map(t => t.toFixed(2));
+  CHANNELS.forEach((ch, i) => { signalChart.data.datasets[i].data = d.chart_data[ch]; });
+  signalChart.update();
+
+  // ── Virtual hand ──
+  animateHand(d.intent_class, d.triggered);
+
+  // ── Devices ──
+  const trig = d.triggered;
+  document.getElementById('exo-dot').classList.toggle('active', trig);
+  document.getElementById('fes-dot').classList.toggle('active', trig);
+  document.getElementById('exo-status').textContent = trig ? `Activated — ${d.intent}` : 'Standby — safety lockout active';
+  document.getElementById('fes-status').textContent = trig ? 'Pulse delivered successfully' : 'Standby — awaiting intent';
+  document.getElementById('fa-overlay').classList.toggle('show', !!d.cancelled);
+  if (trig) {
+    document.getElementById('orthosis-badge').classList.add('flash-trigger');
+    setTimeout(()=>document.getElementById('orthosis-badge').classList.remove('flash-trigger'),700);
+  }
+
+  // ── XAI ──
+  renderXAI(d.explanation, d.intent);
+  renderConfidenceInterp(d.confidence);
+
+  // ── AI Coach ──
+  renderCoach(d.coach_msgs || []);
+
+  // ── Refresh recovery ──
+  loadRecovery(currentPatient);
+}
+
+// ══════════════════════════════════════════════════════
+//  XAI RENDER
+// ══════════════════════════════════════════════════════
+function renderXAI(explanation, intent) {
+  const container = document.getElementById('explain-bars');
+  container.innerHTML = explanation.map(e => `
+    <div class="explain-row">
+      <span class="explain-ch">${e.channel}</span>
+      <div class="explain-bg"><div class="explain-fill" style="width:${e.contribution}%"></div></div>
+      <span class="explain-pct">${e.contribution}%</span>
+    </div>`).join('');
+  const note = document.getElementById('explain-note');
+  const text = EXPLAIN_NOTES[intent] || '';
+  if (text) { note.textContent = text; note.style.display = ''; }
+  else { note.style.display = 'none'; }
+}
+
+function renderConfidenceInterp(conf) {
+  const pct = conf * 100;
+  const levels = [
+    {id:'ci-low',  fill:'ci-low-fill',  thresh:65,  color:'var(--red)',    label:'Low confidence. Signal ambiguous.'},
+    {id:'ci-med',  fill:'ci-med-fill',  thresh:80,  color:'var(--orange)', label:'Moderate confidence. Usable but marginal.'},
+    {id:'ci-high', fill:'ci-high-fill', thresh:90,  color:'var(--green)',  label:'High confidence. Motor intent clear.'},
+    {id:'ci-exc',  fill:'ci-exc-fill',  thresh:100, color:'var(--teal)',   label:'Excellent! Strong, consistent neural patterns.'},
+  ];
+  let activeLabel = levels[0].label;
+  levels.forEach((l, i) => {
+    const lower = i === 0 ? 0 : levels[i-1].thresh;
+    const active = pct >= lower && pct < l.thresh;
+    document.getElementById(l.id).classList.toggle('active', active);
+    document.getElementById(l.fill).style.width = Math.min(100, Math.max(0, ((pct - lower)/(l.thresh-lower))*100)) + '%';
+    if (active) activeLabel = l.label;
+  });
+  if (pct >= 90) {
+    document.getElementById('ci-exc').classList.add('active');
+    activeLabel = levels[3].label;
+  }
+  document.getElementById('conf-interp-text').textContent = activeLabel;
+}
+
+// ══════════════════════════════════════════════════════
+//  AI COACH
+// ══════════════════════════════════════════════════════
+function renderCoach(msgs) {
+  const feed = document.getElementById('coach-feed');
+  if (!msgs || msgs.length === 0) {
+    feed.innerHTML = '<div class="coach-empty">No coaching data yet.</div>';
+    return;
+  }
+  const newMsgs = msgs.map(m => {
+    const cls = m.includes('⚠')||m.includes('💪')||m.includes('🐢') ? 'warn' : '';
+    return `<div class="coach-msg ${cls}">${m}</div>`;
+  }).join('');
+  // Prepend and limit to 8 messages
+  feed.innerHTML = newMsgs + feed.innerHTML;
+  const children = feed.querySelectorAll('.coach-msg');
+  if (children.length > 8) {
+    for (let i = 8; i < children.length; i++) children[i].remove();
+  }
+}
+
+async function fetchCoach() {
+  const res  = await fetch('/api/coach', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ patient_id: currentPatient })
+  });
+  const data = await res.json();
+  renderCoach(data.msgs);
+}
+
+// ══════════════════════════════════════════════════════
+//  CLINICAL SUMMARY
+// ══════════════════════════════════════════════════════
+async function generateClinicalSummary() {
+  const box = document.getElementById('clinical-summary-box');
+  box.innerHTML = '<div class="empty">Generating…</div>';
+  const res  = await fetch('/api/clinical_summary', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ patient_id: currentPatient })
+  });
+  const data = await res.json();
+  // Render markdown-like bold
+  box.innerHTML = data.summary
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent2)">$1</strong>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// ══════════════════════════════════════════════════════
+//  AUTO-RUN
+// ══════════════════════════════════════════════════════
+function toggleAutoRun() {
+  const on = document.getElementById('autoRunToggle').checked;
+  if (on) {
+    const interval = parseInt(document.getElementById('autoRunInterval').value);
+    autoRunTimer = setInterval(() => simulate(null), interval);
+  } else {
+    if (autoRunTimer) { clearInterval(autoRunTimer); autoRunTimer = null; }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  VOICE ASSISTANT
+// ══════════════════════════════════════════════════════
+let recognition = null;
+let voiceOpen   = false;
+let isListening = false;
+
+function toggleVoicePanel() {
+  voiceOpen = !voiceOpen;
+  document.getElementById('voiceOverlay').classList.toggle('show', voiceOpen);
+  document.getElementById('voiceBtnHeader').classList.toggle('listening', voiceOpen);
+}
+
+function initSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    document.getElementById('voiceResponse').textContent = 'Speech recognition not supported in this browser. Try Chrome.';
+    return;
+  }
+  recognition = new SpeechRec();
+  recognition.lang            = 'en-US';
+  recognition.interimResults  = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById('voiceTranscript').textContent = transcript;
+    document.getElementById('voiceResponse').textContent   = 'Processing…';
+    setListeningUI(false);
+    await handleVoiceCommand(transcript);
+  };
+
+  recognition.onerror = (e) => {
+    document.getElementById('voiceResponse').textContent = `Mic error: ${e.error}. Check browser permissions.`;
+    setListeningUI(false);
+  };
+
+  recognition.onend = () => { setListeningUI(false); };
+}
+
+function setListeningUI(active) {
+  isListening = active;
+  document.getElementById('voiceMicBtn').textContent = active ? '🔴 Listening…' : '🎤 Press to Speak';
+  document.getElementById('voiceMicBtn').classList.toggle('listening', active);
+  document.getElementById('voiceWaveform').classList.toggle('active', active);
+  document.getElementById('voiceBtnHeader').classList.toggle('listening', active || voiceOpen);
+}
+
+function toggleListening() {
+  if (!recognition) { initSpeechRecognition(); }
+  if (!recognition) return;
+  if (isListening) {
+    recognition.stop();
+    setListeningUI(false);
+  } else {
+    try { recognition.start(); setListeningUI(true); } catch(e) {}
+  }
+}
+
+async function handleVoiceCommand(text) {
+  const res  = await fetch('/api/voice', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ text })
+  });
+  const cmd = await res.json();
+
+  document.getElementById('voiceResponse').textContent = cmd.tts || '';
+  speak(cmd.tts || '');
+
+  // Execute action
+  if (cmd.action === 'simulate') {
+    const fc = (cmd.class !== undefined && cmd.class !== null) ? cmd.class : null;
+    await simulate(fc);
+  } else if (cmd.action === 'set_model') {
+    setModel(cmd.model);
+  } else if (cmd.action === 'summary') {
+    await generateClinicalSummary();
+  } else if (cmd.action === 'calibrate') {
+    // Visual calibration feedback
+    document.getElementById('intent-label').textContent = 'CALIBRATING…';
+    document.getElementById('intent-label').style.color = 'var(--teal)';
+    setTimeout(() => simulate(null), 2000);
+  }
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate   = 1.05;
+  utt.pitch  = 1.0;
+  utt.volume = 0.9;
+  window.speechSynthesis.speak(utt);
+}
+
+// Keyboard shortcut Alt+V
+document.addEventListener('keydown', e => {
+  if (e.altKey && e.key === 'v') { e.preventDefault(); toggleVoicePanel(); }
+});
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+initSignalChart();
+initRecoveryChart();
+initHandCanvas();
+selectPatient('P001');
+initSpeechRecognition();
+</script>
+</body>
+</html>
