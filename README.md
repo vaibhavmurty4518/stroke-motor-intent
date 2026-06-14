@@ -109,5 +109,5 @@ stroke-motor-intent/
 └── README.md
 ```
 Team:
-Leader : Tanisha Dangwal
+Leader : Tanisha Dangwal <br>
 Collaborator: Vaibhav Murty
