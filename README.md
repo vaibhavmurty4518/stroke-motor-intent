@@ -110,4 +110,4 @@ stroke-motor-intent/
 ```
 Team:
 Leader : Tanisha Dangwal
-Contribution: Vaibhav Murti
+Collaborator: Vaibhav Murty
